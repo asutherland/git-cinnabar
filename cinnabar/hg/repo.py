@@ -771,6 +771,9 @@ def get_bundle(url):
 
 
 # TODO: Get the changegroup stream directly and send it, instead of
+stored_files = []
+
+
 # recreating a stream we parsed.
 def store_changegroup(changegroup):
     changesets = next(changegroup, None)
@@ -792,6 +795,7 @@ def store_changegroup(changegroup):
         def iter_files(iter):
             last_name = None
             for name, chunk in iter:
+                stored_files.append((chunk.node, chunk.parent1, chunk.parent2))
                 if name != last_name:
                     if last_name is not None:
                         fh.write(struct.pack('>l', 0))

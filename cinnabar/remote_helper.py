@@ -11,6 +11,7 @@ from cinnabar.hg.repo import (
     getbundle,
     get_repo,
     push,
+    stored_files
 )
 from cinnabar.hg.bundle import (
     PushStore,
@@ -29,6 +30,7 @@ from cinnabar.util import (
     fsdecode,
     IOLogger,
     iteritems,
+    progress_iter,
     strip_suffix,
     VersionedDict,
 )
@@ -425,6 +427,12 @@ class GitRemoteHelper(BaseRemoteHelper):
 
         self._helper.write(b'done\n')
         self._helper.flush()
+
+        GitHgHelper._helper = False
+        for (node, parent1, parent2) in progress_iter(
+                "Checking {} imported file revisions", stored_files):
+            if not GitHgHelper.check_file(node, parent1, parent2):
+                sys.stderr.write("Error in file %s\n" % node)
 
         if self._remote.name and self._refs_style('heads'):
             if Git.config('fetch.prune', self._remote.name) != b'true':
